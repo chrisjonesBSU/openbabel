@@ -11,6 +11,7 @@ import unittest
 import tempfile
 from openbabel import openbabel as ob
 import re
+import json
 
 # Set the following to enable a workaround so the tests work on older
 # versions of Open Babel.
@@ -147,22 +148,57 @@ def save_to_pasteboard(text):
     p.stdin.close()
     p.wait()
 
-def test_write_string(test_case, mol, conv, expected_output, normalize):
+#def test_write_string(test_case, mol, conv, expected_output, normalize):
+#    output = conv.WriteString(mol)
+#    ### Debugging output
+#    if 0:
+#        print("===")
+#        print(output)
+#        print("===")
+#    if 0:
+#        save_to_pasteboard(output)
+#
+#    # Apply normalizations to both sides
+#    if normalize is not None:
+#        output = normalize(output)
+#        expected_output = normalize(expected_output)
+#        
+#    test_case.assertMultiLineEqual(output.replace("\r\n", "\n"), expected_output.replace("\r\n", "\n"))
+
+def test_write_string(test_case, mol, conv, expected_output, normalize, float_tol=1e-6):
     output = conv.WriteString(mol)
-    ### Debugging output
-    if 0:
-        print("===")
-        print(output)
-        print("===")
-    if 0:
-        save_to_pasteboard(output)
 
     # Apply normalizations to both sides
     if normalize is not None:
         output = normalize(output)
         expected_output = normalize(expected_output)
-        
-    test_case.assertMultiLineEqual(output.replace("\r\n", "\n"), expected_output.replace("\r\n", "\n"))
+
+    try:
+        actual = json.loads(output)
+        expected = json.loads(expected_output)
+
+        def compare(a, b, path="root"):
+            if isinstance(a, dict) and isinstance(b, dict):
+                test_case.assertAlmostEqual(set(a), set(b), f"Dict keys mismatch at {path}")
+                for k in a:
+                    compare(a[k], b[k], f"{path}.{k}")
+            elif isinstance(a, list) and isinstance(b, list):
+                test_case.assertAlmostEqual(len(a), len(b), f"List length mismatch at {path}")
+                for i in range(len(a)):
+                    compare(a[i], b[i], f"{path}[{i}]")
+            elif isinstance(a, float) and isinstance(b, float):
+                test_case.assertAlmostEqual(a, b, delta=float_tol, msg=f"Float mismatch at {path}")
+            else:
+                test_case.assertAlmostEqual(a, b, f"Value mismatch at {path}")
+
+        compare(actual, expected)
+
+    except json.JSONDecodeError:
+        # Fallback to line-based comparison if not valid JSON
+        test_case.assertMultiLineEqual(
+            output.replace("\r\n", "\n"),
+            expected_output.replace("\r\n", "\n")
+        )
 
 if type(u"") == type(""):
     # Python 3

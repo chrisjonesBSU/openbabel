@@ -1,6 +1,6 @@
 name: CMake Build Matrix
 
-on: [push, pull_request]
+on: [pull_request]
 
 env:
   BUILD_TYPE: Release
@@ -17,12 +17,13 @@ jobs:
             name: "Ubuntu Latest GCC SWIG",
             os: ubuntu-latest,
             cc: "gcc", cxx: "g++",
-            cmake_flags: "-DPYTHON_BINDINGS=ON -DRUN_SWIG=ON"
+            cmake_flags: "-DPYTHON_BINDINGS=ON -DRUN_SWIG=ON -DWITH_CAIRO=ON"
           }
         - {
             name: "Ubuntu Latest GCC", artifact: "Linux.tar.xz",
             os: ubuntu-latest,
             cc: "gcc", cxx: "g++",
+            cmake_flags: "-DWITH_CAIRO=ON"
           }
         - {
             name: "macOS Latest Clang", artifact: "macOS.tar.xz",
@@ -51,7 +52,9 @@ jobs:
 
     - name: Install Dependencies (Linux)
       if: runner.os == 'Linux'
-      run: sudo apt-get -qq install ninja-build swig libeigen3-dev libboost-all-dev
+      run: | 
+        sudo apt-get update
+        sudo apt-get -y install ninja-build swig libeigen3-dev libboost-all-dev pkg-config libxml2-dev zlib1g-dev libcairo2-dev
 
     - name: Install Dependencies (Windows)
       if: runner.os == 'Windows'
@@ -61,7 +64,7 @@ jobs:
 
     - name: Install Dependencies (macOS)
       if: runner.os == 'macOS'
-      run: brew install ninja swig eigen boost
+      run: brew install ninja swig eigen boost cairo
 
     - name: Install MSVC Dependencies
       if: runner.os == 'Windows'
@@ -100,14 +103,3 @@ jobs:
       if: matrix.config.artifact != 0
       run: cmake -E tar cJfv ../${{ matrix.config.artifact }} .
       working-directory: ${{ runner.workspace }}/instdir
-
-    - name: Upload
-      if: matrix.config.artifact != 0
-      uses: actions/upload-artifact@v4
-      with:
-        path: ${{ runner.workspace }}/instdir/../${{ matrix.config.artifact }}
-        name: ${{ matrix.config.artifact }}
-
-    - name: Setup tmate debugging session
-      if: ${{ failure() }}
-      uses: mxschmitt/action-tmate@v3
