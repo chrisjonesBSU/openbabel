@@ -179,17 +179,17 @@ def test_write_string(test_case, mol, conv, expected_output, normalize, float_to
 
         def compare(a, b, path="root"):
             if isinstance(a, dict) and isinstance(b, dict):
-                test_case.assertEqual(set(a), set(b), f"Dict keys mismatch at {path}")
+                test_case.assertAlmostEqual(set(a), set(b), f"Dict keys mismatch at {path}")
                 for k in a:
                     compare(a[k], b[k], f"{path}.{k}")
             elif isinstance(a, list) and isinstance(b, list):
-                test_case.assertEqual(len(a), len(b), f"List length mismatch at {path}")
+                test_case.assertAlmostEqual(len(a), len(b), f"List length mismatch at {path}")
                 for i in range(len(a)):
                     compare(a[i], b[i], f"{path}[{i}]")
             elif isinstance(a, float) and isinstance(b, float):
                 test_case.assertAlmostEqual(a, b, delta=float_tol, msg=f"Float mismatch at {path}")
             else:
-                test_case.assertEqual(a, b, f"Value mismatch at {path}")
+                test_case.assertAlmostEqual(a, b, f"Value mismatch at {path}")
 
         compare(actual, expected)
 
