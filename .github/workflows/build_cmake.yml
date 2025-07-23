@@ -103,14 +103,3 @@ jobs:
       if: matrix.config.artifact != 0
       run: cmake -E tar cJfv ../${{ matrix.config.artifact }} .
       working-directory: ${{ runner.workspace }}/instdir
-
-    - name: Upload
-      if: matrix.config.artifact != 0
-      uses: actions/upload-artifact@v4
-      with:
-        path: ${{ runner.workspace }}/instdir/../${{ matrix.config.artifact }}
-        name: ${{ matrix.config.artifact }}
-
-    - name: Setup tmate debugging session
-      if: ${{ failure() }}
-      uses: mxschmitt/action-tmate@v3
