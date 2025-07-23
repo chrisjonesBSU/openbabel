@@ -17,12 +17,13 @@ jobs:
             name: "Ubuntu Latest GCC SWIG",
             os: ubuntu-latest,
             cc: "gcc", cxx: "g++",
-            cmake_flags: "-DPYTHON_BINDINGS=ON -DRUN_SWIG=ON"
+            cmake_flags: "-DPYTHON_BINDINGS=ON -DRUN_SWIG=ON -DWITH_CAIRO=ON"
           }
         - {
             name: "Ubuntu Latest GCC", artifact: "Linux.tar.xz",
             os: ubuntu-latest,
             cc: "gcc", cxx: "g++",
+            cmake_flags: "-DWITH_CAIRO=ON"
           }
         - {
             name: "macOS Latest Clang", artifact: "macOS.tar.xz",
@@ -61,7 +62,7 @@ jobs:
 
     - name: Install Dependencies (macOS)
       if: runner.os == 'macOS'
-      run: brew install ninja swig eigen boost
+      run: brew install ninja swig eigen boost cairo
 
     - name: Install MSVC Dependencies
       if: runner.os == 'Windows'
